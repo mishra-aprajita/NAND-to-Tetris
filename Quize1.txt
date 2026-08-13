@@ -1,0 +1,4 @@
+39 decimal to binary --> 100111
+111001 binary to decimal --> 57
+10101111 --> 1's complimment --> 01010000
+11010010 -- 1's comp --> 00101101 -> 2's comp --> 00101110

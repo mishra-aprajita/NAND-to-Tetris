@@ -6,4 +6,3 @@ gates --
     XNOR -- 
     NAND --
     NOR --
-    

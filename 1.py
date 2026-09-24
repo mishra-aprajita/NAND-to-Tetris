@@ -8,3 +8,4 @@ def sum_of_digits(num):
         total += int(digit)
     
     return total
+    

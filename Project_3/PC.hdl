@@ -1,0 +1,26 @@
+// PC.hdl
+/**
+ * A 16-bit counter.
+ * if      reset(t): out(t+1) = 0
+ * else if load(t):  out(t+1) = in(t)
+ * else if inc(t):   out(t+1) = out(t) + 1
+ * else              out(t+1) = out(t)
+ */
+
+CHIP PC {
+    IN in[16], reset, load, inc;
+    OUT out[16];
+    
+    PARTS:
+    // Next value if incrementing
+    Inc16(in=outLoop, out=incOut);
+
+    // Priority applied from lowest to highest, inc then load then reset
+    Mux16(a=outLoop, b=incOut, sel=inc,   out=w1);
+    Mux16(a=w1,      b=in,     sel=load,  out=w2);
+    Mux16(a=w2,      b=false,  sel=reset, out=w3);
+    
+    // Store every cycle, the Mux chain already decided the value
+    Register(in=w3, load=true, out=outLoop, out=out);
+
+}

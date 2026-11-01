@@ -1,0 +1,31 @@
+CHIP PC {
+        IN in[16], load, inc, reset;
+        OUT out[16];
+
+        PARTS:
+        // 1. Increment current output value
+        Inc16(in=prevOut, out=incOut);
+        
+        // 2. Decide between incremented value or current value based on 'inc'
+        Mux16(a=prevOut, b=incOut, sel=inc, out=mux1Out);
+
+        // 3. Decide between input value or previous stage based on 'load'
+        Mux16(a=mux1Out, b=in, sel=load, out=mux2Out);
+         
+        // 4. Decide between zero(reset) or previous stage based on 'reset'
+        Mux16(a=mux2Out, b=false, sel=reset, out=regIn);
+
+        // 5. Store result in a 16-bit Register
+        Register(in=regIn, load=true, out=out, out=prevOut);
+}
+
+/**
+ * # State-Transition Table:
+ * 
+ * reset | load | inc | Operation | Next State
+ * ------+------+-----+-----------+------------------
+ *   1   |  x   |  x  | Reset     | 0000000000000000
+ *   0   |  1   |  x  | Load      | in[t]
+ *   0   |  0   |  1  | Increment | out[t+1]
+ *   0   |  0   |  0  | Hold      | out[t]
+ */

@@ -1,0 +1,46 @@
+// 1. Xor.hdl
+CHIP Xor {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Not(in=a, out=nota);
+    Not(in=b, out=notb);
+    And(a=a, b=notb, out=aAndNotb);
+    And(a=nota, b=b, out=notaAndb);
+    Or(a=aAndNotb, b=notaAndb, out=out);
+}
+
+// 2. Mux.hdl
+CHIP Mux {
+    IN a, b, sel;
+    OUT out;
+
+    PARTS:
+    Not(in=sel, out=notsel);
+    And(a=a, b=notsel, out=aAndNotsel);
+    And(a=b, b=sel, out=bAndSel);
+    Or(a=aAndNotsel, b=bAndSel, out=out);
+}
+
+// 3. Mux4Way16.hdl
+CHIP Mux4Way16 {
+    IN a[16], b[16], c[16], d[16], sel[2];
+    OUT out[16];
+
+    PARTS:
+    Mux16(a=a, b=b, sel=sel[0], out=ab);
+    Mux16(a=c, b=d, sel=sel[0], out=cd);
+    Mux16(a=ab, b=cd, sel=sel[1], out=out);
+}
+
+// 4. DMux.hdl
+CHIP DMux {
+    IN in, sel;
+    OUT a, b;
+
+    PARTS:
+    Not(in=sel, out=notsel);
+    And(a=in, b=notsel, out=a);
+    And(a=in, b=sel, out=b);
+}

@@ -1,0 +1,29 @@
+// 1. Not.hdl
+CHIP Not {
+    IN in;
+    OUT out;
+
+    PARTS:
+    Nand(a = in, b = in, out = out);
+}
+
+// 2. And.hdl
+CHIP And {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Nand(a = a, b = b, out = nandout);
+    Nand(a = nandout, b = nandout, out = out);
+}
+
+// 3. Or.hdl
+CHIP Or {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Nand(a = a, b = a, out = nand1out);
+    Nand(a = b, b = b, out = nand2out);
+    Nand(a = nand1out, b = nand2out, out = out);
+}

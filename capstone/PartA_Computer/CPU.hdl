@@ -1,0 +1,64 @@
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    // Decode instruction type: bit 15 == 0 -> A-instruction, bit 15 == 1 -> C-instruction
+    Not(in=instruction[15], out=isA);
+
+    // A-register input: instruction if A-instruction, else ALU output aluOut
+    Mux16(a=instruction, b=aluOut, sel=instruction[15], out=aIn);
+
+    // Load A-register if A-instruction OR (C-instruction with dest A = instruction[5])
+    And(a=instruction[15], b=instruction[5], out=destA);
+    Or(a=isA, b=destA, out=loadA);
+    ARegister(in=aIn, load=loadA, out=aOut, out[0..14]=addressM);
+
+    // Choose between A-register and M (inM) based on 'a' bit = instruction[12]
+    Mux16(a=aOut, b=inM, sel=instruction[12], out=amOut);
+
+    // Load D-register if C-instruction AND dest D = instruction[4]
+    And(a=instruction[15], b=instruction[4], out=loadD);
+    DRegister(in=aluOut, load=loadD, out=dOut);
+
+    // ALU control bits come from instruction[6..11]
+    ALU(x=dOut, y=amOut,
+        zx=instruction[11], nx=instruction[10],
+        zy=instruction[9],  ny=instruction[8],
+        f=instruction[7],   no=instruction[6],
+        out=aluOut, out=outM, zr=zr, ng=ng);
+
+    // writeM is 1 only for C-instruction with dest M = instruction[3]
+    And(a=instruction[15], b=instruction[3], out=writeM);
+
+    // Jump conditions:
+    // j1 (instruction[2]): out < 0 (ng)
+    // j2 (instruction[1]): out == 0 (zr)
+    // j3 (instruction[0]): out > 0 (!zr && !ng)
+    Not(in=zr, out=notZr);
+    Not(in=ng, out=notNg);
+    And(a=notZr, b=notNg, out=pos);
+
+    And(a=instruction[2], b=ng, out=jlt);
+    And(a=instruction[1], b=zr, out=jeq);
+    And(a=instruction[0], b=pos, out=jgt);
+
+    Or(a=jlt, b=jeq, out=jle);
+    Or(a=jle, b=jgt, out=jumpCond);
+
+    // Jump only happens on C-instruction
+    And(a=instruction[15], b=jumpCond, out=loadPC);
+
+    // PC increments normally, loads aOut on jump, resets to 0 on reset
+    Not(in=loadPC, out=incPC);
+    PC(in=aOut, load=loadPC, inc=incPC, reset=reset, out[0..14]=pc);
+}

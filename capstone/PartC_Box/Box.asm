@@ -1,6 +1,5 @@
 // Box.asm  (K = 13)
-// Box: row 13 se shuru, 20 rows unchi, 32 pixel (2 words) chaudi
-// Key dabi ho to kala (-1), warna safed (0)
+
 
 (LOOP)
     @KBD
